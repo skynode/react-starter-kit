@@ -29,6 +29,7 @@ const config = {
     path: path.resolve(__dirname, '../build/public/assets'),
     publicPath: '/assets/',
     pathinfo: isVerbose,
+    devtoolModuleFilenameTemplate: info => path.resolve(info.absoluteResourcePath),
   },
 
   module: {
@@ -77,7 +78,11 @@ const config = {
         },
       },
       {
-        test: /\.css/,
+        // Internal Styles
+        test: /\.css$/,
+        include: [
+          path.resolve(__dirname, '../src'),
+        ],
         use: [
           {
             loader: 'isomorphic-style-loader',
@@ -99,7 +104,31 @@ const config = {
           {
             loader: 'postcss-loader',
             options: {
-              config: './tools/postcss.config.js',
+              config: {
+                path: './tools/postcss.config.js',
+              },
+            },
+          },
+        ],
+      },
+      {
+        // External Styles
+        test: /\.css$/,
+        exclude: [
+          path.resolve(__dirname, '../src'),
+        ],
+        use: [
+          {
+            loader: 'isomorphic-style-loader',
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: isDebug,
+              // CSS Modules Disabled
+              modules: false,
+              minimize: !isDebug,
+              discardComments: { removeAll: true },
             },
           },
         ],
@@ -130,10 +159,6 @@ const config = {
 
       // Exclude dev modules from production build
       ...isDebug ? [] : [
-        {
-          test: path.resolve(__dirname, '../node_modules/redbox-react/lib/index.js'),
-          use: 'null-loader',
-        },
         {
           test: path.resolve(__dirname, '../node_modules/react-deep-force-update/lib/index.js'),
           use: 'null-loader',
@@ -275,7 +300,7 @@ const serverConfig = {
         ...rule.query,
         presets: rule.query.presets.map(preset => (preset[0] !== 'env' ? preset : ['env', {
           targets: {
-            node: parseFloat(pkg.engines.node.replace(/^\D+/g, '')),
+            node: pkg.engines.node.match(/(\d+\.?)+/)[0],
           },
           modules: false,
           useBuiltIns: false,

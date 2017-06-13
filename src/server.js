@@ -60,9 +60,8 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
     console.error('[express-jwt-error]', req.cookies.id_token);
     // `clearCookie`, otherwise user can't use web-app until cookie expires
     res.clearCookie('id_token');
-  } else {
-    next(err);
   }
+  next(err);
 });
 
 app.use(passport.initialize());
@@ -117,9 +116,9 @@ app.get('*', async (req, res, next) => {
     };
 
     const route = await router.resolve({
+      ...context,
       path: req.path,
       query: req.query,
-      fetch: context.fetch,
     });
 
     if (route.redirect) {
@@ -132,13 +131,11 @@ app.get('*', async (req, res, next) => {
     data.styles = [
       { id: 'css', cssText: [...css].join('') },
     ];
-    data.scripts = [
-      assets.vendor.js,
-      assets.client.js,
-    ];
-    if (assets[route.chunk]) {
-      data.scripts.push(assets[route.chunk].js);
+    data.scripts = [assets.vendor.js];
+    if (route.chunks) {
+      data.scripts.push(...route.chunks.map(chunk => assets[chunk].js));
     }
+    data.scripts.push(assets.client.js);
     data.app = {
       apiUrl: config.api.clientUrl,
     };
