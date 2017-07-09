@@ -14,6 +14,7 @@ import bodyParser from 'body-parser';
 import expressJwt, { UnauthorizedError as Jwt401Error } from 'express-jwt';
 import expressGraphQL from 'express-graphql';
 import jwt from 'jsonwebtoken';
+import fetch from 'node-fetch';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import PrettyError from 'pretty-error';
@@ -41,7 +42,7 @@ global.navigator.userAgent = global.navigator.userAgent || 'all';
 //
 // Register Node.js middleware
 // -----------------------------------------------------------------------------
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.resolve(__dirname, 'public')));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -109,7 +110,7 @@ app.get('*', async (req, res, next) => {
         styles.forEach(style => css.add(style._getCss()));
       },
       // Universal HTTP client
-      fetch: createFetch({
+      fetch: createFetch(fetch, {
         baseUrl: config.api.serverUrl,
         cookie: req.headers.cookie,
       }),
@@ -173,8 +174,21 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
 //
 // Launch the server
 // -----------------------------------------------------------------------------
-models.sync().catch(err => console.error(err.stack)).then(() => {
-  app.listen(config.port, () => {
-    console.info(`The server is running at http://localhost:${config.port}/`);
+const promise = models.sync().catch(err => console.error(err.stack));
+if (!module.hot) {
+  promise.then(() => {
+    app.listen(config.port, () => {
+      console.info(`The server is running at http://localhost:${config.port}/`);
+    });
   });
-});
+}
+
+//
+// Hot Module Replacement
+// -----------------------------------------------------------------------------
+if (module.hot) {
+  app.hot = module.hot;
+  module.hot.accept('./router');
+}
+
+export default app;
