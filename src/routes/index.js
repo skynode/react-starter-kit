@@ -11,14 +11,15 @@
 
 // The top-level (parent) route
 const routes = {
-
-  path: '/',
+  path: '',
 
   // Keep in mind, routes are evaluated in order
   children: [
+    // The home route is added to client.js to make sure shared components are
+    // added to client.js as well and not repeated in individual each route chunk.
     {
-      path: '/',
-      load: () => import(/* webpackChunkName: 'home' */ './home'),
+      path: '',
+      load: () => import(/* webpackMode: 'eager' */ './home'),
     },
     {
       path: '/contact',
@@ -45,9 +46,9 @@ const routes = {
       load: () => import(/* webpackChunkName: 'admin' */ './admin'),
     },
 
-    // Wildcard routes, e.g. { path: '*', ... } (must go last)
+    // Wildcard routes, e.g. { path: '(.*)', ... } (must go last)
     {
-      path: '*',
+      path: '(.*)',
       load: () => import(/* webpackChunkName: 'not-found' */ './not-found'),
     },
   ],
@@ -62,7 +63,6 @@ const routes = {
 
     return route;
   },
-
 };
 
 // The error page is available by permanent url for development mode

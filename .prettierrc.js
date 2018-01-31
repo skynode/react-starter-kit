@@ -7,17 +7,10 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import DataType from 'sequelize';
-import Model from '../sequelize';
-
-const UserClaim = Model.define('UserClaim', {
-  type: {
-    type: DataType.STRING,
-  },
-
-  value: {
-    type: DataType.STRING,
-  },
-});
-
-export default UserClaim;
+// Prettier configuration
+// https://prettier.io/docs/en/configuration.html
+module.exports = {
+  printWidth: 80,
+  singleQuote: true,
+  trailingComma: 'all',
+};
